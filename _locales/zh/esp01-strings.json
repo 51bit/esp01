@@ -7,7 +7,7 @@
   "esp01.disconnectFromWiFiRouter|block": "断开WiFi路由器连接",
   "esp01.setupAPServer|block": "设置AP Web服务器：%ssid, %password",
   "esp01.getAPWebRequest|block": "获取AP web请求",
-  "esp01.serveWebHTML|block": "托管Web网页： %getSuccess, 设置LED状态: %LED_status",
+  "esp01.serveWebHTML|block": "托管Web网页，页面正确： %getSuccess, 设置LED状态: %LED_status",
   "esp01.sendHttp|block": "执行HTTP方法： %method|主机: %host|端口: %port|路径: %urlPath|报头headers: %headers|主体body: %body",
   "esp01.sendHttpAndResponse|block": "发送HTTP方法： %method|主机: %host|端口: %port|路径: %urlPath|报头headers: %headers|主体body: %body"
 }

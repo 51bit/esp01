@@ -209,13 +209,13 @@ namespace esp01 {
 
     /**
      * Serve Web HTML.
-     * @param getSuccess getSuccess, eg: "false"
+     * @param getSuccess getSuccess, eg: "true"
      * @param LED_status LED_status, eg: "0x23be"
      */
     //% weight=99
     //% group="Wifi Server suite"
-    //% blockId="esp01_serve_webhtml" block="serve Web HTML %getSuccess, set LED status: %LED_status"
-    export function serveWebHTML(getSuccess: boolean = false, LED_status: number): void {
+    //% blockId="esp01_serve_webhtml" block="serve Web HTML, success page: %getSuccess, set LED status: %LED_status"
+    export function serveWebHTML(getSuccess: boolean = true, LED_status: number): void {
         // output HTML
         let HTML_str: string = ""
         if (getSuccess) {
@@ -241,7 +241,7 @@ namespace esp01 {
      */
     //% weight=96
     //% group="HTTP suite"
-    //% blockId="esp01_sendhttp" block="execute HTTP method %method|host: %host|port: %port|path: %urlPath||headers: %headers|body: %body"
+    //% blockId="esp01_sendhttp" block="execute HTTP method %method|host: %host|port: %port|path: %urlPath|headers: %headers|body: %body"
     //% inlineInputMode=inline
     export function sendHttp(method: HttpMethod, host: string, port: number, urlPath: string, headers?: string, body?: string): void {
         let myMethod: string = myMethods[method]
