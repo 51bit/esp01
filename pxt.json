@@ -1,6 +1,6 @@
 {
     "name": "esp01",
-    "version": "0.0.1",
+    "version": "0.0.2",
     "description": "esp01 for microbit",
     "license": "MIT",
     "dependencies": {
