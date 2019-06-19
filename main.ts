@@ -42,8 +42,8 @@ namespace esp01 {
     /**
      * Unicode NewLine chars
      */
-    //% weight=93
-    //% group="Common"
+    //% weight=92
+    //% group="Wifi Common"
     //% blockId="esp01_crlf" block="CRLF"
     export function newline(): string {
         return NEWLINE
@@ -54,8 +54,8 @@ namespace esp01 {
      * @param cmd AT command, eg: "AT"
      * @param sleepTime Sleep time, eg: 1000
      */
-    //% weight=97
-    //% group="Common"
+    //% weight=91
+    //% group="Wifi Common"
     //% blockId="esp01_send_at" block="send AT command %cmd and wait %sleepTime ms"
     export function sendATCommand(cmd: string, sleepTime: number = 1000): void {
         serial.writeString(cmd + NEWLINE)
@@ -64,11 +64,13 @@ namespace esp01 {
 
     /**
      * Setup ESP-01
+     * @param TXPin TXPin, eg: SerialPin.P1
+     * @param RXPin RXPin, eg: SerialPin.P2
      */
     //% weight=100
-    //% group="Wifi suite"
+    //% group="Wifi Router Suite"
     //% blockId="esp01_connect" block="Setup ESP-01, TXPin:%TXPin , RXPin:%RXPin"
-    export function setupEsp01(TXPin: SerialPin = SerialPin.P0, RXPin: SerialPin = SerialPin.P1): void {
+    export function setupEsp01(TXPin: SerialPin = SerialPin.P1, RXPin: SerialPin = SerialPin.P2): void {
         serial.redirect(TXPin, RXPin, BaudRate.BaudRate115200)
         basic.pause(100)
         // Restart module:
@@ -79,11 +81,11 @@ namespace esp01 {
 
     /**
      * Connect to WiFi Router.
-     * @param ssid SSID, eg: "SSID"
+     * @param ssid SSID, eg: "Router SSID"
      * @param password Password, eg: "password"
      */
     //% weight=99
-    //% group="Wifi suite"
+    //% group="Wifi Router Suite"
     //% blockId="esp01_connect_wifi" block="connect to WiFi Router %ssid, %password"
     export function connectToWiFiRouter(ssid: string, password: string): boolean {
         // Connect to AP:
@@ -97,7 +99,7 @@ namespace esp01 {
      * Disconnect from WiFi Router.
      */
     //% weight=98
-    //% group="Wifi suite"
+    //% group="Wifi Router Suite"
     //% blockId="esp01_disconnect_wifi" block="disconnect from WiFi Router"
     export function disconnectFromWiFiRouter(): void {
         // Disconnect from AP:
@@ -106,11 +108,11 @@ namespace esp01 {
 
     /**
      * Connect to AP Server.
-     * @param ssid SSID, eg: "SSID"
+     * @param ssid SSID, eg: "AP SSID"
      * @param password Password, eg: "password"
      */
-    //% weight=99
-    //% group="Wifi Server suite"
+    //% weight=97
+    //% group="Wifi Server Suite"
     //% blockId="esp01_setup_apserver" block="setup AP Server %ssid, %password"
     export function setupAPServer(ssid: string, password: string): void {
         // setup AP with 4 channels and authenticate mode = 4 (WPA_WPA2_PSK)
@@ -179,8 +181,8 @@ namespace esp01 {
     /**
      * Get AP Web Request.
      */
-    //% weight=99
-    //% group="Wifi Server suite"
+    //% weight=96
+    //% group="Wifi Server Suite"
     //% blockId="esp01_get_webrequest" block="get AP web request"
     export function getAPWebRequest(): string {
         let time: number = input.runningTime()
@@ -209,11 +211,11 @@ namespace esp01 {
 
     /**
      * Serve Web HTML.
-     * @param getSuccess getSuccess, eg: "true"
-     * @param LED_status LED_status, eg: "0x23be"
+     * @param getSuccess getSuccess, eg: true
+     * @param LED_status LED_status, eg: 0x23be
      */
-    //% weight=99
-    //% group="Wifi Server suite"
+    //% weight=95
+    //% group="Wifi Server Suite"
     //% blockId="esp01_serve_webhtml" block="serve Web HTML, success page: %getSuccess, set LED status: %LED_status"
     export function serveWebHTML(getSuccess: boolean = true, LED_status: number): void {
         // output HTML
@@ -239,8 +241,8 @@ namespace esp01 {
      * @param headers Headers
      * @param body Body
      */
-    //% weight=96
-    //% group="HTTP suite"
+    //% weight=94
+    //% group="Wifi HTTP Suite"
     //% blockId="esp01_sendhttp" block="execute HTTP method %method|host: %host|port: %port|path: %urlPath|headers: %headers|body: %body"
     //% inlineInputMode=inline
     export function sendHttp(method: HttpMethod, host: string, port: number, urlPath: string, headers?: string, body?: string): void {
@@ -248,15 +250,15 @@ namespace esp01 {
         // Establish TCP connection:
         let data: string = "AT+CIPSTART=\"TCP\",\"" + host + "\"," + port
         sendATCommand(data, sendSerialTimeout * 6)
-        data = myMethod + " " + urlPath + " HTTP/1.1" + "\u000D" + "\u000A"
-            + "Host: " + host + "\u000D" + "\u000A"
+        data = myMethod + " " + urlPath + " HTTP/1.1" + NEWLINE
+            + "Host: " + host + NEWLINE
         if (headers && headers.length > 0) {
-            data += headers + "\u000D" + "\u000A"
+            data += headers + NEWLINE
         }
         if (data && data.length > 0) {
-            data += "\u000D" + "\u000A" + body + "\u000D" + "\u000A"
+            data += NEWLINE + body + NEWLINE
         }
-        data += "\u000D" + "\u000A"
+        data += NEWLINE
         // Send data:
         sendATCommand("AT+CIPSEND=" + (data.length + 2), sendSerialTimeout * 3)
         sendATCommand(data, sendSerialTimeout * 6)
@@ -273,8 +275,8 @@ namespace esp01 {
      * @param headers Headers
      * @param body Body
      */
-    //% weight=94
-    //% group="HTTP suite"
+    //% weight=93
+    //% group="Wifi HTTP Suite"
     //% blockId="esp_sendhttp_response" block="Send HTTP method %method|host: %host|port: %port|path: %urlPath|headers: %headers|body: %body"
     //% inlineInputMode=inline
     export function sendHttpAndResponse(method: HttpMethod, host: string, port: number, urlPath: string, headers?: string, body?: string): string {
