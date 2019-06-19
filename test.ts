@@ -20,7 +20,7 @@ basic.forever(function () {
         pass = 1
         pins.digitalWritePin(DigitalPin.P16, 1)
     }
-    esp01.serveWebHTML(pass == 1, 0)
+    esp01.serveWebHTML(pass == 1)
 })
 input.onButtonPressed(Button.A, function () {
     basic.showString(esp01.newline())

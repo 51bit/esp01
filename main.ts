@@ -20,6 +20,7 @@ namespace esp01 {
     let sendSerialTimeout: number = 1000
     let serial_str: string = ""
     let client_ID: string = ""
+    let LED_status: number = 0x0
 
     // for wifi connection
     function wait_for_response(str: string): boolean {
@@ -127,7 +128,7 @@ namespace esp01 {
 
     // generate HTML
     // LED_status=0x23be, 0x23be=0000 0000 0010 0011 1011 1110
-    function getHTML(normal: boolean, LED_status: number): string {
+    function getHTML(normal: boolean): string {
         let LED_statusString: string = ""
         let LED_buttonString: string = ""
         let web_title: string = "ESP8266 (ESP-01) Wifi on BBC micro:bit"
@@ -206,18 +207,29 @@ namespace esp01 {
                 break
             }
         }
+        let posLED = getCommand.indexOf("LED")
+        if (posLED != -1) {
+            let getNum = parseInt(getCommand.substr(3, getCommand.length - posLED - 1)) - 1
+            let a = LED_status >> getNum
+
+            if ((a & 1) == 0) {
+                LED_status = LED_status | (1 << getNum)
+            }
+            else {
+                LED_status = (LED_status & ~(1 << getNum))
+            }
+        }
         return getCommand
     }
 
     /**
      * Serve Web HTML.
      * @param getSuccess getSuccess, eg: true
-     * @param LED_status LED_status, eg: 0x23be
      */
     //% weight=95
     //% group="Wifi Server Suite"
-    //% blockId="esp01_serve_webhtml" block="serve Web HTML, success page: %getSuccess, set LED status: %LED_status"
-    export function serveWebHTML(getSuccess: boolean = true, LED_status: number): void {
+    //% blockId="esp01_serve_webhtml" block="serve Web HTML, success page: %getSuccess"
+    export function serveWebHTML(getSuccess: boolean = true): void {
         // output HTML
         let HTML_str: string = ""
         if (getSuccess) {

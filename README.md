@@ -4,6 +4,9 @@ ESP-01 makecode extension for micro:bit
 
 ![Alt text](https://github.com/51bit/esp01/raw/master/icon.png?raw=true "ESP-01")
 
+Pre-design PCB:
+![Alt text](https://github.com/51bit/esp01/raw/master/version0.1.jpg?raw=true "ESP-01 for micro:bit")
+
 ## Basic Usage
 
 ```blocks
@@ -29,7 +32,7 @@ basic.forever(function () {
         pass = 1
         pins.digitalWritePin(DigitalPin.P16, 1)
     }
-    esp01.serveWebHTML(pass == 1, 0)
+    esp01.serveWebHTML(pass == 1)
 })
 input.onButtonPressed(Button.A, function () {
     basic.showString(esp01.newline())
