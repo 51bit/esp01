@@ -233,9 +233,9 @@ namespace esp01 {
         // output HTML
         let HTML_str: string = ""
         if (getSuccess) {
-            HTML_str = getHTML(true,LED_status) // normal HTML
+            HTML_str = getHTML(true) // normal HTML
         } else {
-            HTML_str = getHTML(false,LED_status) // HTML with error message
+            HTML_str = getHTML(false) // HTML with error message
         }
         // send HTML to user
         sendATCommand("AT+CIPSEND=" + client_ID + "," + (HTML_str.length + 2))
