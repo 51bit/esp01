@@ -35,7 +35,7 @@ namespace esp01 {
                 result = true
                 break
             }
-            if (input.runningTime() - time > 300000) break
+            if (input.runningTime() - time > 30000) break
         }
         return result
     }
@@ -74,10 +74,10 @@ namespace esp01 {
     export function setupEsp01(TXPin: SerialPin = SerialPin.P1, RXPin: SerialPin = SerialPin.P2): void {
         serial.redirect(TXPin, RXPin, BaudRate.BaudRate115200)
         basic.pause(100)
-        // Restart module:
-        sendATCommand("AT+RST", 2000)
         // WIFI mode = Station mode (client) + AP Server:
         sendATCommand("AT+CWMODE=3", 5000)
+        // Restart module:
+        sendATCommand("AT+RST", 2000)
     }
 
     /**
@@ -92,7 +92,8 @@ namespace esp01 {
         // Connect to AP:
         sendATCommand("AT+CWJAP=\"" + ssid + "\",\"" + password + "\"", 6000)
         let result: boolean = wait_for_response("OK")
-        if (!result) control.reset()
+        // don't reset, reset will hang here.
+        // if (!result) control.reset()
         return result
     }
 
@@ -124,6 +125,8 @@ namespace esp01 {
         sendATCommand("AT+CIPSERVER=1,80")
         // display IP (you'll need this in STA mode; in AP mode it would be default 192.168.4.1)
         //sendATCommand("AT+CIFSR")
+        // Restart module:
+        sendATCommand("AT+RST", 2000)
     }
 
     // generate HTML
@@ -149,8 +152,8 @@ namespace esp01 {
         html += "<br>"
         // generate status text
         if (normal) {
-            for (let i = 0; i < 16; ++i) {
-                const index=15-i;
+            for (let i = 0; i < 4; ++i) {
+                const index=3-i;
                 const a=LED_status >> index;
                 if((a & 1)==0)
                 {
@@ -202,7 +205,7 @@ namespace esp01 {
                 getCommand = serial_str.substr(GET_pos + 5, (HTTP_pos - 1) - (GET_pos + 5))
                 break;
             }
-            if (input.runningTime() - time > 300000) {
+            if (input.runningTime() - time > 30000) {
                 getCommand = "TIMEOUT"
                 break
             }
