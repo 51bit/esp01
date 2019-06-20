@@ -27,7 +27,10 @@ while(true)
         pass = 1
         pins.digitalWritePin(DigitalPin.P12, 1 - pins.digitalReadPin(DigitalPin.P12))
     }
-    esp01.serveWebHTML(pass == 1)
+    if(httpResult != "TIMEOUT")
+    {
+        esp01.serveWebHTML(pass == 1)
+    }
 }
 input.onButtonPressed(Button.A, function () {
     basic.showString(esp01.newline())
