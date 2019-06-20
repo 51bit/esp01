@@ -7,7 +7,6 @@ if (esp01.connectToWiFiRouter("myRouterSSID", "password")) {
     basic.showIcon(IconNames.No)
 }
 esp01.setupAPServer("myAPSSID", "password")
-esp01.serveWebHTML(true)
 while(true)
 {
     httpResult = esp01.getAPWebRequest()

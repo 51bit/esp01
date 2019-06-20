@@ -19,7 +19,7 @@ namespace esp01 {
     let myMethods: string[] = ["GET", "POST", "PUT", "HEAD", "DELETE", "PATCH", "OPTIONS", "CONNECT", "TRACE"]
     let sendSerialTimeout: number = 1000
     let serial_str: string = ""
-    let client_ID: string = ""
+    let client_ID: string = "192.168.4.2"
     let LED_status: number = 0x0
 
     // for wifi connection
@@ -234,12 +234,7 @@ namespace esp01 {
     //% blockId="esp01_serve_webhtml" block="serve Web HTML, success page: %getSuccess"
     export function serveWebHTML(getSuccess: boolean = true): void {
         // output HTML
-        let HTML_str: string = ""
-        if (getSuccess) {
-            HTML_str = getHTML(true) // normal HTML
-        } else {
-            HTML_str = getHTML(false) // HTML with error message
-        }
+        let HTML_str: string = getHTML(getSuccess)
         // send HTML to user
         sendATCommand("AT+CIPSEND=" + client_ID + "," + (HTML_str.length + 2))
         sendATCommand(HTML_str, 1000)
