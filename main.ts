@@ -10,6 +10,12 @@ enum HttpMethod {
     TRACE
 }
 
+enum ESPMODE {
+    STA,
+    AP,
+    AP_STA
+}
+
 /**
  * esp-01 tool
  */
@@ -22,22 +28,24 @@ namespace esp01 {
     let client_ID: string = "192.168.4.2"
     let LED_status: number = 0x0
 
-    // for wifi connection
-    function wait_for_response(str: string): boolean {
+
+    // getResponse
+    function get_response(): string {
         let result: boolean = false
-        let time: number = input.runningTime()
-        while (true) {
-            serial_str += serial.readString()
-            if (serial_str.length > 200) {
-                serial_str = serial_str.substr(serial_str.length - 200)
+        let response: string = ""
+        serial.onDataReceived(serial.delimiters(Delimiters.NewLine), function () {
+            response += serial.readString()
+            if (response.length > 200) {
+                response = response.substr(response.length - 200)
             }
-            if (serial_str.includes(str)) {
-                result = true
-                break
-            }
-            if (input.runningTime() - time > 30000) break
-        }
-        return result
+        })
+        serial.onDataReceived(serial.delimiters(Delimiters.NewLine), () => { })
+        return response
+    }
+
+    // 
+    function wait_for_response(str: string): boolean {
+        return get_response().includes(str)
     }
 
     /**
@@ -69,13 +77,24 @@ namespace esp01 {
      * @param RXPin RXPin, eg: SerialPin.P2
      */
     //% weight=100
-    //% group="Wifi Router Suite"
-    //% blockId="esp01_connect" block="Setup ESP-01, TXPin:%TXPin , RXPin:%RXPin"
-    export function setupEsp01(TXPin: SerialPin = SerialPin.P1, RXPin: SerialPin = SerialPin.P2): void {
+    //% group="Wifi Common"
+    //% blockId="esp01_init_uart" block="Setup ESP-01, TXPin:%TXPin , RXPin:%RXPin"
+    export function initUART(TXPin: SerialPin = SerialPin.P1, RXPin: SerialPin = SerialPin.P2): void {
         serial.redirect(TXPin, RXPin, BaudRate.BaudRate115200)
-        basic.pause(100)
+    }
+
+    /**
+    * Setup ESP-01
+    * @param TXPin TXPin, eg: SerialPin.P1
+    * @param RXPin RXPin, eg: SerialPin.P2
+    * @param mode mode, eg: ESPMODE.STA
+    */
+    //% weight=100
+    //% group="Wifi Common"
+    //% blockId="esp01_connect" block="Setup ESP-01, TXPin:%TXPin , RXPin:%RXPin, mode: %mode"
+    export function setupEsp01(TXPin: SerialPin = SerialPin.P1, RXPin: SerialPin = SerialPin.P2, mode: ESPMODE = ESPMODE.STA): void {
         // WIFI mode = Station mode (client) + AP Server:
-        sendATCommand("AT+CWMODE=3", 5000)
+        sendATCommand("AT+CWMODE=" + (mode + 1), 5000)
         // Restart module:
         sendATCommand("AT+RST", 2000)
     }
@@ -90,10 +109,15 @@ namespace esp01 {
     //% blockId="esp01_connect_wifi" block="connect to WiFi Router %ssid, %password"
     export function connectToWiFiRouter(ssid: string, password: string): boolean {
         // Connect to AP:
-        sendATCommand("AT+CWJAP=\"" + ssid + "\",\"" + password + "\"", 6000)
+        sendATCommand("AT+CWJAP=\"" + ssid + "\",\"" + password + "\"", 0)
         let result: boolean = wait_for_response("OK")
-        // don't reset, reset will hang here.
-        // if (!result) control.reset()
+        //AT+CIFSR//get ip address
+        //AT+CIPMUX=0//set single connection
+        //AT+CIPMODE=1//enable wifi transfer
+        //AT+CIPSTART="TCP","192.168.4.1",8899//connect tcp connection to ap
+        //AT+CIPSEND//send command
+        //>
+        //ABCDEFG//send data
         return result
     }
 
@@ -125,6 +149,41 @@ namespace esp01 {
         sendATCommand("AT+CIPSERVER=1,80")
         // display IP (you'll need this in STA mode; in AP mode it would be default 192.168.4.1)
         //sendATCommand("AT+CIFSR")
+        //AT+CIPSTATUS
+        //AT+CWLIF
+        // Restart module:
+        sendATCommand("AT+RST", 2000)
+    }
+
+    /**
+    * Connect to AP STA Server.
+    * @param ssid SSID, eg: "AP SSID"
+    * @param password Password, eg: "password"
+    */
+    //% weight=97
+    //% group="Wifi Server Suite"
+    //% blockId="esp01_setup_apserver" block="setup AP STA Server %ssid, %password"
+    export function setupAP_STAServer(ssid: string, password: string): void {
+        // setup AP with 4 channels and authenticate mode = 4 (WPA_WPA2_PSK)
+        sendATCommand("AT+CWSAP=\"" + ssid + "\",\"" + password + "\",1,4", 6000)
+        // allow multiple connections
+        sendATCommand("AT+CIPMUX=1")
+        //start web server
+        sendATCommand("AT+CIPSERVER=1,80")
+        //AT+CWMODE=3//AP + STA
+        //AT+CWLAP//list WIFI
+        //sendATCommand("AT+CWJAP=\"" + ssid + "\",\"" + password + "\"",0)//connect wifi router
+        //AT+CIPMUX=0//set single connection
+        //AT+CIPMODE=1//enable wifi transfer
+        //AT+CIPSTART="TCP","115.29.109.104",6602//connect public network ip
+        //AT+CIPSEND//send command
+        //>
+        //ABCDEFG//send data
+
+        // display IP (you'll need this in STA mode; in AP mode it would be default 192.168.4.1)
+        //sendATCommand("AT+CIFSR")
+        //AT+CIPSTATUS
+        //AT+CWLIF
         // Restart module:
         sendATCommand("AT+RST", 2000)
     }
@@ -153,22 +212,20 @@ namespace esp01 {
         // generate status text
         if (normal) {
             for (let i = 0; i < 4; ++i) {
-                const index=3-i;
-                const a=LED_status >> index;
-                if((a & 1)==0)
-                {
+                const index = 3 - i;
+                const a = LED_status >> index;
+                if ((a & 1) == 0) {
                     LED_statusString = "OFF"
                     LED_buttonString = "TURN IT ON"
                 }
-                else
-                {
+                else {
                     LED_statusString = "ON"
                     LED_buttonString = "TURN IT OFF"
                 }
-                html += "<h3>LED"+i+" STATUS: " + LED_statusString + "</h3>"
+                html += "<h3>LED" + i + " STATUS: " + LED_statusString + "</h3>"
                 html += "<br>"
                 // generate buttons
-                html += "<input type=\"button\" onClick=\"window.location.href=\'LED"+(i+1)+"\'\" value=\"" + LED_buttonString + "\">"
+                html += "<input type=\"button\" onClick=\"window.location.href=\'LED" + (i + 1) + "\'\" value=\"" + LED_buttonString + "\">"
                 html += "<br>"
             }
         } else {
@@ -301,4 +358,3 @@ namespace esp01 {
         return value
     }
 }
-
