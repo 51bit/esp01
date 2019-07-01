@@ -1,6 +1,6 @@
-# ESP-01 for micro:bit
+# ESP-01 for micro:bit (in progress, not ready yet.)
 
-ESP-01 makecode extension for micro:bit
+ESP-01 makecode extension for micro:bit (in progress, not ready yet.)
 
 ![Alt text](https://github.com/51bit/esp01/raw/master/icon.png?raw=true "ESP-01")
 
