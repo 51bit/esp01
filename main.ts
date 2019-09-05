@@ -89,7 +89,7 @@ namespace esp01 {
     */
     //% weight=100
     //% group="Wifi Common"
-    //% blockId="esp01_setMode" block="Setup ESP-01 mode: %mode"
+    //% blockId="esp01_setMode" block="Set ESP-01 mode: %mode"
     export function setMode(mode: ESPMODE = ESPMODE.STA): void {
         // WIFI mode = Station mode (client) + AP Server:
         sendATCommand("AT+CWMODE=" + (mode + 1), 5000)
@@ -288,7 +288,7 @@ namespace esp01 {
      */
     //% weight=80
     //% group="AP"
-    //% blockId="esp01_AP_UDP_For2Modules" block="AP UDP for 2 modules, ssid: %wssid|password: %password"
+    //% blockId="esp01_AP_UDP_For2Modules" block="AP UDP for 2 modules, ssid: %ssid|password: %password"
     //% inlineInputMode=inline
     export function AP_UDP_For2Modules(ssid: string, password: string): void {
         sendATCommand("AT+CWMODE=2")
@@ -312,7 +312,7 @@ namespace esp01 {
      */
     //% weight=80
     //% group="STA"
-    //% blockId="esp01_STA_UDP_For2Modules" block="STA UDP for 2 modules, ssid: %wssid|password: %password"
+    //% blockId="esp01_STA_UDP_For2Modules" block="STA UDP for 2 modules, ssid: %ssid|password: %password"
     //% inlineInputMode=inline
     export function STA_UDP_For2Modules(ssid: string, password: string): void {
         sendATCommand("AT+CWMODE=1")
@@ -336,7 +336,7 @@ namespace esp01 {
     */
     //% weight=80
     //% group="AP"
-    //% blockId="esp01_AP_TCP_For2Modules" block="AP TCP for 2 modules, ssid: %wssid|password: %password"
+    //% blockId="esp01_AP_TCP_For2Modules" block="AP TCP for 2 modules, ssid: %ssid|password: %password"
     //% inlineInputMode=inline
     export function AP_TCP_For2Modules(ssid: string, password: string): void {
         sendATCommand("AT+CWMODE=2")
