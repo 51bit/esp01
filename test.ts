@@ -1,12 +1,12 @@
 let pass = 0
 let httpResult = ""
-esp01.setupEsp01(SerialPin.P1, SerialPin.P2)
+esp01.initUART(SerialPin.P1, SerialPin.P2)
 if (esp01.connectToWiFiRouter("myRouterSSID", "password")) {
     basic.showIcon(IconNames.Yes)
 } else {
     basic.showIcon(IconNames.No)
 }
-esp01.setupAPServer("myAPSSID", "password")
+esp01.AP_TCP("myAPSSID", "password")
 while(true)
 {
     httpResult = esp01.getAPWebRequest()
