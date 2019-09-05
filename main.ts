@@ -84,15 +84,13 @@ namespace esp01 {
     }
 
     /**
-    * Setup ESP-01
-    * @param TXPin TXPin, eg: SerialPin.P1
-    * @param RXPin RXPin, eg: SerialPin.P2
+    * Set ESP-01 mode
     * @param mode mode, eg: ESPMODE.STA
     */
     //% weight=100
     //% group="Wifi Common"
-    //% blockId="esp01_connect" block="Setup ESP-01, TXPin:%TXPin , RXPin:%RXPin, mode: %mode"
-    export function setupEsp01(TXPin: SerialPin = SerialPin.P1, RXPin: SerialPin = SerialPin.P2, mode: ESPMODE = ESPMODE.STA): void {
+    //% blockId="esp01_setMode" block="Setup ESP-01 mode: %mode"
+    export function setMode(mode: ESPMODE = ESPMODE.STA): void {
         // WIFI mode = Station mode (client) + AP Server:
         sendATCommand("AT+CWMODE=" + (mode + 1), 5000)
         // Restart module:
@@ -101,15 +99,15 @@ namespace esp01 {
 
     /**
      * Connect to WiFi Router.
-     * @param ssid SSID, eg: "Router SSID"
+     * @param wifiRouter wifi Router, eg: "myHomeWifi"
      * @param password Password, eg: "password"
      */
     //% weight=99
     //% group="Wifi Router Suite"
-    //% blockId="esp01_connect_wifi" block="connect to WiFi Router %ssid, %password"
-    export function connectToWiFiRouter(ssid: string, password: string): boolean {
+    //% blockId="esp01_connect_wifi" block="connect to WiFi Router %wifiRouter, %password"
+    export function connectToWiFiRouter(wifiRouter: string, password: string): boolean {
         // Connect to AP:
-        sendATCommand("AT+CWJAP=\"" + ssid + "\",\"" + password + "\"", 0)
+        sendATCommand("AT+CWJAP=\"" + wifiRouter + "\",\"" + password + "\"", 0)
         let result: boolean = wait_for_response("OK")
         //AT+CIFSR//get ip address
         //AT+CIPMUX=0//set single connection
@@ -133,59 +131,271 @@ namespace esp01 {
     }
 
     /**
-     * Connect to AP Server.
-     * @param ssid SSID, eg: "AP SSID"
-     * @param password Password, eg: "password"
+     * send TCP
+     * @param destIP destination IP address, eg: 192.168.4.2
+     * @param destPort destination port, eg: 1000
      */
-    //% weight=97
-    //% group="Wifi Server Suite"
-    //% blockId="esp01_setup_apserver" block="setup AP Server %ssid, %password"
-    export function setupAPServer(ssid: string, password: string): void {
-        // setup AP with 4 channels and authenticate mode = 4 (WPA_WPA2_PSK)
-        sendATCommand("AT+CWSAP=\"" + ssid + "\",\"" + password + "\",1,4", 6000)
-        // allow multiple connections
-        sendATCommand("AT+CIPMUX=1")
-        //start web server
-        sendATCommand("AT+CIPSERVER=1,80")
-        // display IP (you'll need this in STA mode; in AP mode it would be default 192.168.4.1)
-        //sendATCommand("AT+CIFSR")
-        //AT+CIPSTATUS
-        //AT+CWLIF
-        // Restart module:
-        sendATCommand("AT+RST", 2000)
+    //% weight=80
+    //% group="send"
+    //% blockId="esp01_sendTCP" block="send TCP, host: %destIP|destPort: %port"
+    //% inlineInputMode=inline
+    export function sendTCP(destIP: string, destPort: number): void {
+        sendATCommand("AT+CIPSTART=\"TCP\",\"" + destIP + "\"," + destPort + "")
     }
 
     /**
-    * Connect to AP STA Server.
-    * @param ssid SSID, eg: "AP SSID"
-    * @param password Password, eg: "password"
-    */
-    //% weight=97
-    //% group="Wifi Server Suite"
-    //% blockId="esp01_setup_apserver" block="setup AP STA Server %ssid, %password"
-    export function setupAP_STAServer(ssid: string, password: string): void {
-        // setup AP with 4 channels and authenticate mode = 4 (WPA_WPA2_PSK)
-        sendATCommand("AT+CWSAP=\"" + ssid + "\",\"" + password + "\",1,4", 6000)
-        // allow multiple connections
-        sendATCommand("AT+CIPMUX=1")
-        //start web server
-        sendATCommand("AT+CIPSERVER=1,80")
-        //AT+CWMODE=3//AP + STA
-        //AT+CWLAP//list WIFI
-        //sendATCommand("AT+CWJAP=\"" + ssid + "\",\"" + password + "\"",0)//connect wifi router
-        //AT+CIPMUX=0//set single connection
-        //AT+CIPMODE=1//enable wifi transfer
-        //AT+CIPSTART="TCP","115.29.109.104",6602//connect public network ip
-        //AT+CIPSEND//send command
-        //>
-        //ABCDEFG//send data
+     * send UDP
+     * @param PC_UDPServer_IP destination IP address, eg: 192.168.4.2
+     * @param PC_UDPServer_Port PC UDPServer Port, eg: 5000
+     * @param destPort destination port, eg: 1000
+     */
+    //% weight=80
+    //% group="send"
+    //% blockId="esp01_sendUDP" block="send UDP, PC UDPServer IP: %PC_UDPServer_IP|PC UDPServer Port: %PC_UDPServer_Port|dest Port: %destPort"
+    //% inlineInputMode=inline
+    export function sendUDP(PC_UDPServer_IP: string, PC_UDPServer_Port: number, destPort: number): void {
+        sendATCommand("AT+CIPSTART=\"UDP\",\"+PC_UDPServer_IP+\"," + PC_UDPServer_Port + "," + destPort + ",0")
+    }
 
-        // display IP (you'll need this in STA mode; in AP mode it would be default 192.168.4.1)
-        //sendATCommand("AT+CIFSR")
-        //AT+CIPSTATUS
-        //AT+CWLIF
+    /**
+     * AP TCP Server
+     * @param ssid ssid, eg: ESP8266
+     * @param password AP server password, eg: 123456
+     */
+    //% weight=80
+    //% group="AP"
+    //% blockId="esp01_AP_TCP" block="AP TCP Server, ssid: %ssid|password: %password"
+    //% inlineInputMode=inline
+    export function AP_TCP(ssid: string, password: string): void {
+        sendATCommand("AT+CWMODE=2")
+
         // Restart module:
         sendATCommand("AT+RST", 2000)
+
+        sendATCommand("AT+CWSAP=\"" + ssid + "\",\"" + password + "\",11,0")
+        sendATCommand("AT+CIPSERVER=1,8899")
+        //will send data
+        //AT+CIPSEND=0,11
+    }
+
+    /**
+    * STA TCP Server
+    * @param wifiRouter wifi Router, eg: myHomeWifi
+    * @param password AP server password, eg: 123456
+    */
+    //% weight=80
+    //% group="STA"
+    //% blockId="esp01_STA_TCP" block="STA TCP Server, wifi router: %wifiRouter|password: %password"
+    //% inlineInputMode=inline
+    export function STA_TCP(wifiRouter: string, password: string): void {
+        sendATCommand("AT+CWMODE=1")
+
+        // Restart module:
+        sendATCommand("AT+RST", 2000)
+
+        sendATCommand("AT+CWLAP")
+        sendATCommand("AT+CWJAP=\"" + wifiRouter + "\",\"" + password + "\"")
+        sendATCommand("AT+CIFSR")
+        sendATCommand("AT+CIPMUX=1")
+        sendATCommand("AT+CIPSERVER=1,8899")
+        //will send data
+        //AT+CIPSEND=0,11
+    }
+
+    /**
+     * STA TCP Client
+     * @param wifiRouter wifi Router, eg: myHomeWifi
+     * @param password AP server password, eg: 123456
+     */
+    //% weight=80
+    //% group="STA"
+    //% blockId="esp01_STA_TCPClient" block="STA TCP Client, wifi router: %wifiRouter|password: %password"
+    //% inlineInputMode=inline
+    export function STA_TCPClient(wifiRouter: string, password: string): void {
+        sendATCommand("AT+CWMODE=1")
+
+        // Restart module:
+        sendATCommand("AT+RST", 2000)
+
+        sendATCommand("AT+CWLAP")
+        sendATCommand("AT+CWJAP=\"" + wifiRouter + "\",\"" + password + "\"")
+        sendATCommand("AT+CIFSR")
+        sendATCommand("AT+CIPMUX=0")
+        sendATCommand("AT+CIPMODE=1")
+        ////connect to server
+        //sendATCommand("AT+CIPSTART=\"TCP\",\""+destIP+"\","+destPort+"")
+        //AT+CIPSTART="TCP","192.168.43.104",8899
+        //AT+CIPSEND
+        //data
+        //+++
+    }
+
+    /**
+     * STA UDP MultiConnections
+     * @param wifiRouter wifi Router, eg: myHomeWifi
+     * @param password AP server password, eg: 123456
+     */
+    //% weight=80
+    //% group="AP"
+    //% blockId="esp01_STA_UDP_MultiConnections" block="STA UDP Multiple Connections, wifi router: %wifiRouter|password: %password"
+    //% inlineInputMode=inline
+    export function STA_UDP_MultiConnections(wifiRouter: string, password: string): void {
+        sendATCommand("AT+CWMODE=1")
+
+        // Restart module:
+        sendATCommand("AT+RST", 2000)
+
+        sendATCommand("AT+CWLAP")
+        sendATCommand("AT+CWJAP=\"" + wifiRouter + "\",\"" + password + "\"")
+        sendATCommand("AT+CIFSR")
+        sendATCommand("AT+CIPMUX=1")
+        //sendATCommand("AT+CIPSTART=0,\"UDP\",\"255.255.255.255\","+PC_UDPServer_Port+","+destPort+", 0")
+        //AT+CIPSTART=0,"UDP","255.255.255.255",50000,1000, 0
+        //will send data
+        //AT+CIPSEND=0,11
+    }
+
+    /**
+     * STA UDP AT
+     * @param wifiRouter wifi Router, eg: myHomeWifi
+     * @param password AP server password, eg: 123456
+     */
+    //% weight=80
+    //% group="STA"
+    //% blockId="esp01_STA_UDP_AT" block="STA UDP AT, wifi router: %wifiRouter|password: %password"
+    //% inlineInputMode=inline
+    export function STA_UDP_AT(wifiRouter: string, password: string): void {
+        sendATCommand("AT+CWMODE=1")
+
+        // Restart module:
+        sendATCommand("AT+RST", 2000)
+
+        sendATCommand("AT+CWLAP")
+        sendATCommand("AT+CWJAP=\"" + wifiRouter + "\",\"" + password + "\"")
+        sendATCommand("AT+CIFSR")
+        sendATCommand("AT+CIPMUX=0")
+        sendATCommand("AT+CIPMODE=1")
+        //sendATCommand("AT+CIPSTART=\"UDP\",\"+PC_UDPServer_IP+\","+PC_UDPServer_Port+","+destPort+",0")
+        //AT+CIPSTART="UDP","192.168.43.104",5000,2000,0
+        //will send data
+        //AT+CIPSEND=0,11
+    }
+
+    /**
+     * AP UDP For 2 Modules
+     * @param ssid ssid, eg: ESP8266
+     * @param password AP server password, eg: 123456
+     */
+    //% weight=80
+    //% group="AP"
+    //% blockId="esp01_AP_UDP_For2Modules" block="AP UDP for 2 modules, ssid: %wssid|password: %password"
+    //% inlineInputMode=inline
+    export function AP_UDP_For2Modules(ssid: string, password: string): void {
+        sendATCommand("AT+CWMODE=2")
+
+        // Restart module:
+        sendATCommand("AT+RST", 2000)
+
+        sendATCommand("AT+CWSAP=\"" + ssid + "\",\"" + password + "\",11,0")
+        sendATCommand("AT+CIPMUX=0")
+        sendATCommand("AT+CIPMODE=1")
+        //wait another module to send, then we can send
+        //AT+CIPSTART="UDP","192.168.4.2",333,333,0
+        //will send data
+        //AT+CIPSEND=0,11
+    }
+
+    /**
+     * STA UDP For 2 Modules
+     * @param ssid ssid, eg: ESP8266
+     * @param password AP server password, eg: 123456
+     */
+    //% weight=80
+    //% group="STA"
+    //% blockId="esp01_STA_UDP_For2Modules" block="STA UDP for 2 modules, ssid: %wssid|password: %password"
+    //% inlineInputMode=inline
+    export function STA_UDP_For2Modules(ssid: string, password: string): void {
+        sendATCommand("AT+CWMODE=1")
+
+        // Restart module:
+        sendATCommand("AT+RST", 2000)
+
+        sendATCommand("AT+CWLAP")
+        sendATCommand("AT+CWJAP=\"" + ssid + "\",\"" + password + "\"")
+        sendATCommand("AT+CIPMUX=0")
+        sendATCommand("AT+CIPMODE=1")
+        //AT+CIPSTART="UDP","192.168.4.1",333,333,0
+        //will send data
+        //AT+CIPSEND
+    }
+
+    /**
+    * AP TCP For 2 Modules
+    * @param ssid ssid, eg: ESP8266
+    * @param password AP server password, eg: 123456
+    */
+    //% weight=80
+    //% group="AP"
+    //% blockId="esp01_AP_TCP_For2Modules" block="AP TCP for 2 modules, ssid: %wssid|password: %password"
+    //% inlineInputMode=inline
+    export function AP_TCP_For2Modules(ssid: string, password: string): void {
+        sendATCommand("AT+CWMODE=2")
+
+        // Restart module:
+        sendATCommand("AT+RST", 2000)
+
+        sendATCommand("AT+CWSAP=\"" + ssid + "\",\"" + password + "\",11,0")
+        sendATCommand("AT+CIPMUX=1")
+        sendATCommand("AT+CIPSERVER=1,8899")
+        //will send data
+        //AT+CIPSEND=0,11
+    }
+
+    /**
+     * STA TCP For 2 Modules
+     * @param ssid ssid, eg: ESP8266
+     * @param password AP server password, eg: 123456
+     */
+    //% weight=80
+    //% group="STA"
+    //% blockId="esp01_STA_TCP_For2Modules" block="STA TCP for 2 modules, ssid: %ssid|password: %password"
+    //% inlineInputMode=inline
+    export function STA_TCP_For2Modules(ssid: string, password: string): void {
+        sendATCommand("AT+CWMODE=1")
+        // Restart module:
+        sendATCommand("AT+RST", 2000)
+
+        sendATCommand("AT+CWLAP")
+        sendATCommand("AT+CWJAP=\"" + ssid + "\",\"" + password + "\"")
+        sendATCommand("AT+CIFSR")
+        sendATCommand("AT+CIPMUX=0")
+        sendATCommand("AT+CIPMODE=1")
+        //sendATCommand("AT+CIPSTART="TCP","192.168.4.1",8899")
+        //will send data
+        //AT+CIPSEND
+    }
+
+    /**
+     * STA_AP TCP For Cloud
+     * @param wifiRouter wifi Router, eg: ESP8266
+     * @param password STA_AP server password, eg: 123456
+     */
+    //% weight=80
+    //% group="Wifi Common"
+    //% blockId="esp01_STA_AP_TCP_ForCloud" block="STA_AP TCP for cloud, wifiRouter: %wssid|password: %password"
+    //% inlineInputMode=inline
+    export function STA_AP_TCP_ForCloud(wifiRouter: string, password: string): void {
+        sendATCommand("AT+CWMODE=3")
+        // Restart module:
+        sendATCommand("AT+RST", 2000)
+
+        sendATCommand("AT+CWLAP")
+        sendATCommand("AT+CWJAP=\"" + wifiRouter + "\",\"" + password + "\"")
+        sendATCommand("AT+CIPMUX=0")
+        sendATCommand("AT+CIPMODE=1")
+        //sendATCommand("AT+CIPSTART="TCP","115.29.109.104",6602")
+        //will send data
+        //AT+CIPSEND
     }
 
     // generate HTML
